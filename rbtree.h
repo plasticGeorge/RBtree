@@ -1,3 +1,5 @@
+
+
 using namespace std;
 
 template <typename T>
@@ -10,33 +12,42 @@ class RBTree
             RED
         };
 
-        class Node
+        struct Node
         {
-            public:
-                T value;
-                NodeColor color; //true => red; false => black;
-                Node* left;
-                Node* right;
-                Node* parent;
+            T value;
+            NodeColor color; //true => red; false => black;
+            Node* left;
+            Node* right;
+            Node* parent;
 
-                Node(T value, NodeColor color, Node* left, Node* right, Node* parent)
-                {
-                    this->value = value;
-                    this->color = color;
-                    this->left = left;
-                    this->right = right;
-                    this->parent = parent;
-                }
+            Node(T value, NodeColor color, Node* left, Node* right, Node* parent)
+            {
+                this->value = value;
+                this->color = color;
+                this->left = left;
+                this->right = right;
+                this->parent = parent;
+            }
         };
 
-        Node* root = NULL;
+        #define NIL &sentinel
+        Node sentinel = 
+        {
+            T(),
+            BLACK,
+            NIL,
+            NIL,
+            NULL
+        };
+
+        Node* root = NIL;
         int size = 0;
 
         //helper func section
         void _rotate_left(Node* pivot)
         {
             Node* new_root = pivot->right;
-            if(new_root == NULL)
+            if(new_root == NIL)
                 return;
             pivot->right = new_root->left;
             new_root->left = pivot;
@@ -54,7 +65,7 @@ class RBTree
         void _rotate_right(Node* pivot)
         {
             Node* new_root = pivot->left;
-            if(new_root == NULL)
+            if(new_root == NIL)
                 return;
             pivot->left = new_root->right;
             new_root->right = pivot;
@@ -193,7 +204,7 @@ class RBTree
 
         void _delete_tree(Node* current_node)
         {
-            if(current_node != NULL)
+            if(current_node != NIL)
             {
                 _delete_tree(current_node->left);
                 _delete_tree(current_node->right);
@@ -204,7 +215,7 @@ class RBTree
 
         void _print(Node* current, int level)
         {      
-            if (current->right != NULL) 
+            if (current->right != NIL) 
                 _print(current->right, level + 1);
             for (int i = 0; i < level; i++)
                 cout << "   ";
@@ -216,7 +227,7 @@ class RBTree
                     cout << "/";
             }
             cout << current->value << endl;
-            if (current->left != NULL) 
+            if (current->left != NIL) 
                 _print(current->left, level + 1);
         }
 
@@ -224,7 +235,7 @@ class RBTree
         {
             Node* current = root;
             Node* res = NULL;
-            while(current != NULL)
+            while(current != NIL)
             {
                 res = current;
                 current = current->left;  
@@ -236,7 +247,7 @@ class RBTree
         {
             Node* current = root;
             Node* res = NULL;
-            while(current != NULL)
+            while(current != NIL)
             {
                 res = current;
                 current = current->right;
@@ -260,7 +271,7 @@ class RBTree
     Node* find(T value)
     {
         Node* res = root;
-        while(res != NULL)
+        while(res != NIL)
         {
             if(value == res->value)
                 return res;
@@ -274,14 +285,14 @@ class RBTree
     {
         Node* current = root;
         Node* parent = NULL;
-        while(current != NULL)
+        while(current != NIL)
         {
             if(value == current->value)
                 return false;
             parent = current;
             current = value > current->value ? current->right : current->left;  
         }
-        Node* new_node = new Node(value, RED, NULL, NULL, parent);
+        Node* new_node = new Node(value, RED, NIL, NIL, parent);
         if(parent)
         {
             value > parent->value ? parent->right = new_node : parent->left = new_node;
@@ -301,17 +312,17 @@ class RBTree
             return false;
         
         Node* temp = NULL;
-        if (removed_node->left == NULL || removed_node->right == NULL)
+        if (removed_node->left == NIL || removed_node->right == NIL)
             temp = removed_node;
         else
         {
             temp = removed_node->right;
-            while (temp->left != NULL)
+            while (temp->left != NIL)
                 temp = temp->left;
         }
 
         Node* temp_child = NULL;
-        if (temp->left != NULL)
+        if (temp->left != NIL)
             temp_child = temp->left;
         else
             temp_child = temp->right;
@@ -338,7 +349,7 @@ class RBTree
     void delete_tree()
     {
         _delete_tree(root);
-        root = NULL;
+        root = NIL;
         size = 0;
     }
 
@@ -358,7 +369,7 @@ class RBTree
     }
 
     void print(){
-        if(root != NULL)
+        if(root != NIL)
             _print(root, 0);
         else
             cout << "Tree is empty..." << endl;
