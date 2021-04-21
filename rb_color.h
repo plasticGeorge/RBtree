@@ -1,0 +1,5 @@
+enum nodeColor
+{
+    BLACK,
+    RED
+};
