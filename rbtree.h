@@ -1,13 +1,35 @@
-#include </home/george/Documents/Course_work/tree_node.h>
+enum NodeColor
+{
+    BLACK,
+    RED
+};
 
-using namespace std;
+template<typename T>
+class Node
+{
+    public:
+        T value;
+        NodeColor color; //true => red; false => black;
+        Node* left;
+        Node* right;
+        Node* parent;
+
+        Node(T value, NodeColor color, Node* left, Node* right, Node* parent)
+        {
+            this->value = value;
+            this->color = color;
+            this->left = left;
+            this->right = right;
+            this->parent = parent;
+        }
+};
 
 template <typename T>
 class RBTree
 {
+    class Iterator;
     private:
-        #define NIL &sentinel
-        static Node<T> sentinel;
+        static Node<T>* NIL;
 
         Node<T>* root = NIL;
         int size = 0;
@@ -16,37 +38,45 @@ class RBTree
         void _rotate_left(Node<T>* pivot)
         {
             Node<T>* new_root = pivot->right;
-            if(new_root == NIL)
-                return;
             pivot->right = new_root->left;
-            new_root->left = pivot;
-            new_root->parent = pivot->parent;
-            if(new_root->parent)
+            if(new_root->left == NIL)
+                new_root->left->parent = pivot;
+            if (new_root != NIL)
+                new_root->parent = pivot->parent;
+            if (pivot->parent)
             {
-                if(pivot == new_root->parent->right)
-                    new_root->parent->right = new_root;
+                if (pivot == pivot->parent->left)
+                    pivot->parent->left = new_root;
                 else
-                    new_root->parent->left = new_root;
+                    pivot->parent->right = new_root;
             }
-            pivot->parent = new_root;
+            else
+                root = new_root;
+            new_root->left = pivot;
+            if (pivot != NIL)
+                pivot->parent = new_root;
         }
 
         void _rotate_right(Node<T>* pivot)
         {
             Node<T>* new_root = pivot->left;
-            if(new_root == NIL)
-                return;
             pivot->left = new_root->right;
-            new_root->right = pivot;
-            new_root->parent = pivot->parent;
-            if(new_root->parent)
+            if(new_root->right == NIL)
+                new_root->right->parent = pivot;
+            if (new_root != NIL)
+                new_root->parent = pivot->parent;
+            if (pivot->parent)
             {
-                if(pivot == new_root->parent->left)
-                    new_root->parent->left = new_root;
+                if (pivot == pivot->parent->right)
+                    pivot->parent->right = new_root;
                 else
-                    new_root->parent->right = new_root;
+                    pivot->parent->left = new_root;
             }
-            pivot->parent = new_root;
+            else
+                root = new_root;
+            new_root->right = pivot;
+            if (pivot != NIL)
+                pivot->parent = new_root;
         }
 
         void _balance_after_add(Node<T>* pivot)
@@ -187,15 +217,15 @@ class RBTree
             if (current->right != NIL) 
                 _print(current->right, level + 1);
             for (int i = 0; i < level; i++)
-                cout << "   ";
+                std::cout << "   ";
             if (current->parent)
             {
                 if (current == current->parent->left)
-                    cout << "\\";
+                    std::cout << "\\";
                 else
-                    cout << "/";
+                    std::cout << "/";
             }
-            cout << current->value << endl;
+            std::cout << current->value << std::endl;
             if (current->left != NIL) 
                 _print(current->left, level + 1);
         }
@@ -236,163 +266,6 @@ class RBTree
     {
         _delete_tree(root);
     }
-
-    class Iterator
-    {
-        friend RBTree;
-        private:
-            Node<T>* current;
-            Node<T>* root;
-
-            Node<T>* _get_min(Node<T>* root)
-            {
-                Node<T>* current = root;
-                Node<T>* res = NULL;
-                while(current != NIL)
-                {
-                    res = current;
-                    current = current->left;  
-                }
-                return res;
-            }
-
-            Node<T>* _get_max(Node<T>* root)
-            {
-                Node<T>* current = root;
-                Node<T>* res = NULL;
-                while(current != NIL)
-                {
-                    res = current;
-                    current = current->right;
-                }
-                return res;
-            }
-        public:
-            Iterator(Node<T>* first)
-            {
-                current = first;
-                root = current;
-                while(root->parent != NULL)
-                    root = root->parent;
-            }
-
-            Node<T>* operator++()
-            {
-                if(current == _get_max(root))
-                {
-                    current = _get_max(root) + 1;
-                    return current;
-                }
-                if(current->right != NIL)
-                    current = _get_min(current->right);
-                else
-                { 
-                    if(current->parent->left == current)
-                        current = current->parent;
-                    else
-                    {
-                        while(current->parent->right == current)
-                            current = current->parent;
-                        current = current->parent;
-                    }
-                }
-                return current;
-            }
-
-            Node<T>* operator++(int)
-            {
-                Node<T>* temp = current;
-                if(current == _get_max(root))
-                {
-                    current = _get_max(root) + 1;
-                    return temp;
-                }
-                if(current->right != NIL)
-                    current = _get_min(current->right);
-                else
-                { 
-                    if(current->parent->left == current)
-                        current = current->parent;
-                    else
-                    {
-                        while(current->parent->right == current)
-                            current = current->parent;
-                        current = current->parent;
-                    }
-                }
-                return temp;
-            }
-
-            Node<T>* operator+(int n)
-            {
-                for(int i = 0; i < n; i++, current++){}
-                return current;
-            }
-
-            Node<T>* operator--()
-            {
-                if(current == _get_min(root))
-                {
-                    return current;
-                }
-                if(current->left != NIL)
-                    current = _get_max(current->left);
-                else
-                { 
-                    if(current->parent->right == current)
-                        current = current->parent;
-                    else
-                    {
-                        while(current->parent->left == current)
-                            current = current->parent;
-                        current = current->parent;
-                    }
-                }
-                return current;
-            }
-
-            Node<T>* operator--(int)
-            {
-                Node<T>* temp = current;
-                if(current == _get_min(root))
-                {
-                    return temp;
-                }
-                if(current->left != NIL)
-                    current = _get_max(current->left);
-                else
-                { 
-                    if(current->parent->right == current)
-                        current = current->parent;
-                    else
-                    {
-                        while(current->parent->left == current)
-                            current = current->parent;
-                        current = current->parent;
-                    }
-                }
-                return temp;
-            }
-
-            Node<T>* operator-(int n)
-            {
-                for(int i = 0; i < n; i++, current--){}
-                return current;
-            }
-
-            bool operator==(Iterator it)
-            {
-                
-                return current == it.current;
-            }
-
-            bool operator!=(Iterator it)
-            {
-                return current != it.current;
-            }
-
-            T operator*() { return current->value; }
-    };
 
     Iterator begin() { return get_min(); }
 
@@ -505,9 +378,167 @@ class RBTree
         if(root != NIL)
             _print(root, 0);
         else
-            cout << "Tree is empty..." << endl;
+            std::cout << "Tree is empty..." << std::endl;
     }
 };
 
 template<typename T>
-Node<T> RBTree<T>::sentinel = {T(), BLACK, NIL, NIL, NULL};
+Node<T>* RBTree<T>::NIL = new Node<T>(T(), BLACK, NIL, NIL, NIL);
+
+template <typename T>
+class Iterator
+{
+    friend RBTree<T>;
+    private:
+        Node<T>* current;
+        Node<T>* root;
+
+        Node<T>* _get_min(Node<T>* root)
+        {
+            Node<T>* current = root;
+            Node<T>* res = NULL;
+            while(current != RBTree<T>::NIL)
+            {
+                res = current;
+                current = current->left;  
+            }
+            return res;
+        }
+
+        Node<T>* _get_max(Node<T>* root)
+        {
+            Node<T>* current = root;
+            Node<T>* res = NULL;
+            while(current != RBTree<T>::NIL)
+            {
+                res = current;
+                current = current->right;
+            }
+            return res;
+        }
+    public:
+        Iterator(Node<T>* first)
+        {
+            current = first;
+            root = current;
+            while(root->parent != NULL)
+                root = root->parent;
+        }
+
+        Node<T>* operator++()
+        {
+            if(current == _get_max(root))
+            {
+                current = _get_max(root) + 1;
+                return current;
+            }
+            if(current->right != RBTree<T>::NIL)
+                current = _get_min(current->right);
+            else
+            { 
+                if(current->parent->left == current)
+                    current = current->parent;
+                else
+                {
+                    while(current->parent->right == current)
+                        current = current->parent;
+                    current = current->parent;
+                }
+            }
+            return current;
+        }
+
+        Node<T>* operator++(int)
+        {
+            Node<T>* temp = current;
+            if(current == _get_max(root))
+            {
+                current = _get_max(root) + 1;
+                return temp;
+            }
+            if(current->right != RBTree<T>::NIL)
+                current = _get_min(current->right);
+            else
+            { 
+                if(current->parent->left == current)
+                    current = current->parent;
+                else
+                {
+                    while(current->parent->right == current)
+                        current = current->parent;
+                    current = current->parent;
+                }
+            }
+            return temp;
+        }
+
+        Node<T>* operator+(int n)
+        {
+            for(int i = 0; i < n; i++, current++){}
+            return current;
+        }
+
+        Node<T>* operator--()
+        {
+            if(current == _get_min(root))
+            {
+                return current;
+            }
+            if(current->left != RBTree<T>::NIL)
+                current = _get_max(current->left);
+            else
+            { 
+                if(current->parent->right == current)
+                    current = current->parent;
+                else
+                {
+                    while(current->parent->left == current)
+                        current = current->parent;
+                    current = current->parent;
+                }
+            }
+            return current;
+        }
+
+        Node<T>* operator--(int)
+        {
+            Node<T>* temp = current;
+            if(current == _get_min(root))
+            {
+                return temp;
+            }
+            if(current->left != RBTree<T>::NIL)
+                current = _get_max(current->left);
+            else
+            { 
+                if(current->parent->right == current)
+                    current = current->parent;
+                else
+                {
+                    while(current->parent->left == current)
+                        current = current->parent;
+                    current = current->parent;
+                }
+            }
+            return temp;
+        }
+
+        Node<T>* operator-(int n)
+        {
+            for(int i = 0; i < n; i++, current--){}
+            return current;
+        }
+
+        bool operator==(Iterator it)
+        {
+            
+            return current == it.current;
+        }
+
+        bool operator!=(Iterator it)
+        {
+            return current != it.current;
+        }
+
+        T operator*() { return current->value; }
+};
