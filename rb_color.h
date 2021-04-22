@@ -1,4 +1,4 @@
-enum nodeColor
+enum NodeColor
 {
     BLACK,
     RED
